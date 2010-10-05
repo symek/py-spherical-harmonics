@@ -2,25 +2,65 @@
     Most of this code comes from a well know paper by Ravi Ramamoorthi and Pat Hanrahan:
     http://graphics.stanford.edu/papers/envmap. It was trivally rewritten in C++.
 
-    Reference: This is an implementation of the method described by
-               Ravi Ramamoorthi and Pat Hanrahan in their SIGGRAPH 2001
-	           paper, "An Efficient Representation for Irradiance
-	           Environment Maps".
-
-    Author   : Ravi Ramamoorthi
 */
+
 #include <iostream>
 #include <vector>
 #include <math.h>
+#include <string.h>
+#include <stdio.h>
 #include "pysh.h"
+#include "rgbe.h"
 #define PI 3.1415926535897931
 using namespace std;
+
+int Probe::load(const char * filename) {
+
+    // This pieace of code is taken from the other SH project:
+    // http://code.google.com/p/sphericalharmonics
+    float * idata = 0;
+    int    iwidth = 0;
+    int   iheight = 0;
+
+
+    rgbe_header_info info;
+    FILE *file = fopen(filename, "rb");
+    if(file == NULL) {
+        fprintf(stderr, "ERROR! Cannot open a file!");
+        return 0;
+    }
+
+    if(RGBE_ReadHeader(file, &iwidth, &iheight, &info) == RGBE_RETURN_FAILURE)
+        fprintf(stderr, "Couldn't read header. RLE encoded file?");
+
+    if(idata != 0) delete[] idata;
+    idata = new float[3*iwidth*iheight];
+    memset(idata, 0, 3*iwidth*iheight*sizeof(float));
+    if(RGBE_ReadPixels_RLE(file, idata, iwidth , iheight) == RGBE_RETURN_FAILURE) return 0;
+        fprintf(stderr, "Couldn't read a file");
+
+    fclose(file);
+    probe.resize(iwidth*iheight*3);
+    for (int i = 0; i < iwidth*iheight*3; i++) {
+        probe[i] = idata[i];
+    }
+
+    delete[] idata;
+    coeffs.resize(9*3);
+    matrices.resize(16*3);
+    width = iwidth;
+    return 1;
+
+}
+
+Probe::Probe() {;}
 
 Probe::Probe(vector<float> pixels) {
     // This is more like a placeholder for now.
     // The whole initialization needs rethinking.
     // Storage could be external optionally copied internally,
     // loaded from a file or passed by reference etc.
+
     allocateProbe(pixels.size());
     probe = pixels;
     coeffs.resize(9*3);
