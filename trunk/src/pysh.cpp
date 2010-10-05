@@ -36,8 +36,11 @@ int Probe::load(const char * filename) {
     if(idata != 0) delete[] idata;
     idata = new float[3*iwidth*iheight];
     memset(idata, 0, 3*iwidth*iheight*sizeof(float));
-    if(RGBE_ReadPixels_RLE(file, idata, iwidth , iheight) == RGBE_RETURN_FAILURE) return 0;
+    if(RGBE_ReadPixels_RLE(file, idata, iwidth , iheight) == RGBE_RETURN_FAILURE) {
         fprintf(stderr, "Couldn't read a file");
+        return 0;
+    }
+
 
     fclose(file);
     probe.resize(iwidth*iheight*3);

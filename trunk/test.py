@@ -7,7 +7,7 @@ from struct import unpack
 def start(ar, size):
     """Basic performence test."""
     probe = Pysh.Probe(ar)
-    print "Probe created: " + str(clock())
+    print "Probe sent to c++: " + str(clock())
     x = probe.getProbeRef()
     print "Tuple returned from c++ by reference: " + str(clock())
     x = probe.getProbe()
@@ -30,8 +30,11 @@ print "Floats unpacked: %s" % clock()
 
 # Perform a test:
 coeffs, matrices = start(data, size)
+#start(data, size)
+#start(data, size)
 
 
+"""
 r = matrices[:16]
 g = matrices[16:32]
 b = matrices[32:]
@@ -41,28 +44,28 @@ print r
 print g
 print b
 
-
-print "Probe::load() test"
-
-p = Pysh.Probe()
-p.load("./grace_probe.hdr")
-p.prefilter()
-print p.getCoeffs()
-print p.getMatrix()
-
-
-
-
-#start(data, size)
-#start(data, size)
-
 """
-print "Start: " + str(clock())
-a = range(size*size*3)
-print "Tuple created: " + str(clock())
-ar = array("f", a)
-print "Array created: " + str(clock())
-"""
+print "------------------"
+print "Probe::load() test: %s" % clock()
+
+probe = Pysh.Probe()
+print "Probe created: %s" % clock()
+probe.load("./grace_probe.hdr")
+print "Probe loaded: %s" % clock()
+probe.prefilter()
+print "Probe filtered: %s" % clock()
+coeffs   = probe.getCoeffs()
+matrices = probe.getMatrix()
+print "Got matrices and coefficents: %s" % clock()
+
+
+
+
+
+
+
+
+
 
 
 
