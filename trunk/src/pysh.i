@@ -15,8 +15,10 @@ namespace std {
 /* Put header files here or function declarations like below */
 
 #include "pysh.h"
+#include "rgbe.h"
 
 %}
 
 %include "pysh.h"
+%include "rgbe.h"
 

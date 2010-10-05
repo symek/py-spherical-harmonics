@@ -42,6 +42,16 @@ print g
 print b
 
 
+print "Probe::load() test"
+
+p = Pysh.Probe()
+p.load("./grace_probe.hdr")
+p.prefilter()
+print p.getCoeffs()
+print p.getMatrix()
+
+
+
 
 #start(data, size)
 #start(data, size)

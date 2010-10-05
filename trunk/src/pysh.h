@@ -1,6 +1,8 @@
-
 #include <vector>
 #include <iostream>
+#include <string.h>
+#include <stdio.h>
+#include "rgbe.h"
 using namespace std;
 
 
@@ -11,9 +13,13 @@ class Probe {
         // TODO: check if float[] would perform faster
         // (though we like one-dim vector<> for transparent conversion Python<->C++)
         Probe(vector<float>);
+        Probe(void);
 
         // Deconstructor deletes private fields: probe, matrices, coeffs.
         ~Probe();
+
+        //Load pixels from hdr
+        int load(const char * filename);
 
         // Get image's pixels stored inside a class.
         vector <float>   getProbe(void);
@@ -52,6 +58,7 @@ class Probe {
         // Coefficients and matrices vectors.
         vector<float> coeffs;
         vector<float> matrices;
+
 
 };
 
