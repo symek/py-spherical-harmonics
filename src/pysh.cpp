@@ -18,9 +18,13 @@ int Probe::load(const char * filename) {
 
     // This pieace of code is taken from the other SH project:
     // http://code.google.com/p/sphericalharmonics
-    float * idata = 0;
+
     int    iwidth = 0;
     int   iheight = 0;
+
+    // temporary here:
+    coeffs.resize(9*3);
+    matrices.resize(16*3);
 
 
     rgbe_header_info info;
@@ -33,25 +37,23 @@ int Probe::load(const char * filename) {
     if(RGBE_ReadHeader(file, &iwidth, &iheight, &info) == RGBE_RETURN_FAILURE)
         fprintf(stderr, "Couldn't read header. RLE encoded file?");
 
-    if(idata != 0) delete[] idata;
-    idata = new float[3*iwidth*iheight];
-    memset(idata, 0, 3*iwidth*iheight*sizeof(float));
-    if(RGBE_ReadPixels_RLE(file, idata, iwidth , iheight) == RGBE_RETURN_FAILURE) {
+    // TODO: if height != width we should exit for now,
+    // as we support mirror ball squere images only.
+    width = iwidth;
+
+    // let's share memory between (pseudo) array and vector.
+    // ( thus avoiding to copy memory between those)
+    // I'm sending to RGBE_ReadPixels_RLE a pointer to a probe vector
+    // internal buffer, instead of an array it's expecting.
+    probe.resize(iwidth * iheight * 3);
+    float * vector_buffer = &(*probe.begin());
+
+    if(RGBE_ReadPixels_RLE(file, vector_buffer, iwidth , iheight) == RGBE_RETURN_FAILURE) {
         fprintf(stderr, "Couldn't read a file");
         return 0;
     }
 
-
     fclose(file);
-    probe.resize(iwidth*iheight*3);
-    for (int i = 0; i < iwidth*iheight*3; i++) {
-        probe[i] = idata[i];
-    }
-
-    delete[] idata;
-    coeffs.resize(9*3);
-    matrices.resize(16*3);
-    width = iwidth;
     return 1;
 
 }
