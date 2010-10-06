@@ -1,0 +1,126 @@
+/*
+This is an implementation of the method described by
+Ravi Ramamoorthi and Pat Hanrahan in their SIGGRAPH 2001 
+paper, "An Efficient Representation for Irradiance
+Environment Maps".
+
+*/
+
+#pragma hint map image
+
+
+float irradmat(matrix M; vector v)
+{
+
+        vector4 n = v;
+        n.w       = 1;
+		//n         = normalize(n);
+        //n         = M * n;
+        return dot(v, M * n);
+		//return max(dot(v, M * n), 0);
+		//return M * n;
+
+}
+
+
+
+
+surface sphericalHarminics(float addition=1; int input = 0; 
+							string map=""; float blur = 0.1;
+							float angle=0; float maxdist = 1; int samples=64;
+							vector axis=0; float albedo = 1, 
+							saturation = 0.5, hue = 0, scale = 1.0; 
+							matrix red=0, green=0, blue=0;
+							vector  L00 =0, L1_1=0, L10=0, L11=0, 
+					        L2_2=0, L2_1=0, L20=0, L21=0, L22=0)
+{
+
+
+ 	matrix redd;	
+	matrix greenn;
+	matrix bluee ;
+
+
+
+        vector wN = ntransform("space:current", "space:world", normalize(N));
+        //wN = N;
+        //wN.y *= -1;
+        vector cc = 0;
+		vector missed  = 0;
+        float coverage = 0;
+      
+     
+	     redd   = red;
+		 greenn = green;
+	     bluee  = blue;
+
+       
+		matrix3 Id    = ident();
+		matrix  norm  = 1;
+		norm *= addition;
+        float anglee = radians(angle);
+        rotate(Id, anglee, axis);
+		wN *= Id;
+		wN = normalize(wN);
+      
+		occlusion(coverage, missed, P, normalize(N), "maxdist", maxdist, "samples", samples);
+
+
+		if (input == 0 ) {
+        cc.x = albedo * irradmat(norm+(redd*scale), wN);
+        cc.y = albedo * irradmat(norm+(greenn*scale), wN);
+        cc.z = albedo * irradmat(norm+(bluee*scale), wN);
+
+        
+
+        cc = rgbtohsv(cc);
+        cc.y *= saturation;
+		cc.x += hue;
+        cc = hsvtorgb(cc);
+        Cf = cc * (1 - coverage); 
+        F = diffuse() * cc;
+		} else if (input == 1) {
+			//occlusion(coverage, missed, P, normalize(N), "maxdist", maxdist, "samples", samples);
+	        missed = ntransform("space:world", normalize(missed));
+			Cf = albedo * environment(map, missed, "blur", blur) * (1 - coverage);
+	} else if (input == 2) {
+
+		vector n = normalize(wN);
+
+		float  x2;
+		float  y2;
+		float  z2;
+		float  xy;
+		float  yz;
+		float  xz;
+		float  x;
+		float  y;
+		float  z;
+
+		float c1 = 0.429043;
+		float c2 = 0.511664;
+		float c3 = 0.743125;
+		float c4 = 0.886227;
+		float c5 = 0.247708;
+		x = n[0]; y = n[1]; z = n[2];		
+
+
+		x2 = x*x; y2 = y*y; z2 = z*z;
+		xy = x*y; yz = y*z; xz = x*z;
+
+		cc = c1*L22*(x2-y2) + c3*L20*z2 + c4*L00 - c5*L20 
+            + 2*c1*(L2_2*xy + L21*xz + L2_1*yz) 
+            + 2*c2*(L11*x+L1_1*y+L10*z);
+
+		cc = rgbtohsv(cc);
+        cc.y *= saturation;
+		cc.x += hue;
+        cc = hsvtorgb(cc);
+
+		Cf = cc * albedo * (1 - coverage);
+
+	}
+
+}
+
+
